@@ -1,44 +1,29 @@
-const cors = require("cors");
-const express = require("express");
-const bodyParser = require("body-parser");
+const { database, mongoose } = require("./setting/dbConnection");
+const { app, express } = require("./setting/hostConnection");
+const { API } = require("./setting/connectionData");
 
-const dotenv = require("dotenv");
-dotenv.config();
+const { userRouter } = require("./routes/userRoutes");
+const { bookRouter } = require("./routes/bookRoutes");
 
-const { PORT = 3000, API_URL = "http://localhost" } = process.env;
+const { mdlwReqTypeLog, mdlwCORSon } = require("./middlewares/middleware");
 
-// const { router } = require("./routes/routes");
-// const { logMethodMiddleware } = require("./middlewares/middleware");
+// ===============================================================
 
-const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/mydb", (err) => {
-  if (err) throw err;
-  console.log("Connected to MongoDB");
+app.use((err, req, res, next) => {
+  console.log(err);
 });
 
-const app = express();
-app.use(cors);
-// app.use(router);
-// app.use(logMethodMiddleware);
-// app.use(bodyParser.json()); 
+app.use(mdlwCORSon); // CORS
+app.use(mdlwReqTypeLog);
 
-// ---------------------
+app.use(userRouter);
+app.use(bookRouter);
 
-// app.get("/", (request, response) => {
-//   response.status(200);
-//   response.send(`Hello, ${request.query.hello}!`);
-//   response.send(request.body);
-// });
+app.get("/", (req, res) => {
+  res.status(200).send(`Hello! I'm ${req.originalUrl}!`);
+  // res.send(`Hello! I'm ${API}!`);
+});
 
-// app.get("/users", getUsers);
-// app.post("/users", createUser);
-// app.patch("/users/:id", updateUser);
-// app.delete("/users/:id", deleteUser);
-
-// app.get("/users/:id/photos/:photo_id", (req, res) => {
-//   const { id, photo_id } = req.params;
-// });
-
-// app.listen(PORT, () => {
-//   console.log(`Ссылка на сервер: ${API_URL}:${PORT}`);
-// });
+app.get("*", function (req, res) {
+  res.status(404).send(`This URL does not exist!`);
+});
